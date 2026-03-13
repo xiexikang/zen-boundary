@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zen-boundary — 反PUA边界管理</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+
+  :root {
+    --ink: #1a1a18;
+    --paper: #f5f0e8;
+    --paper-dark: #ede7d8;
+    --stone: #8a8478;
+    --stone-light: #c5bfb3;
+    --accent: #4a6741;
+    --accent-warm: #7a5c38;
+    --red: #8b2020;
+    --shadow: rgba(26,26,24,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* 纸张纹理背景 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+  }
+
+  .hero-left {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 80px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-left::after {
+    content: '禅';
+    position: absolute;
+    right: -20px;
+    bottom: -40px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 280px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.04);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 6px 14px;
+    border-radius: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--stone-light);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    width: fit-content;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .hero-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(48px, 6vw, 80px);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+
+  .hero-title .accent { color: rgba(255,255,255,0.35); }
+
+  .hero-sub {
+    font-size: 15px;
+    color: rgba(255,255,255,0.55);
+    max-width: 360px;
+    line-height: 1.9;
+    margin-bottom: 48px;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-quote {
+    border-left: 2px solid var(--accent);
+    padding-left: 20px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+    font-style: italic;
+    line-height: 2;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .hero-right {
+    background: var(--paper-dark);
+    padding: 80px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    border-left: 1px solid var(--stone-light);
+  }
+
+  .install-block {
+    margin-bottom: 48px;
+    animation: fadeUp 0.8s 0.4s ease both;
+  }
+
+  .install-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--stone);
+    margin-bottom: 12px;
+  }
+
+  .install-cmd {
+    background: var(--ink);
+    color: #a8d5a2;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 16px 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .install-cmd:hover { background: #2a2a28; }
+
+  .install-cmd .prompt { color: #586b56; margin-right: 8px; }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.4);
+    padding: 4px 10px;
+    border-radius: 2px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .copy-btn:hover { color: #a8d5a2; border-color: #a8d5a2; }
+  .copy-btn.copied { color: #a8d5a2; border-color: #a8d5a2; }
+
+  .vs-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.8s 0.5s ease both;
+  }
+
+  .vs-card {
+    flex: 1;
+    padding: 16px;
+    border-radius: 4px;
+    border: 1px solid var(--stone-light);
+  }
+
+  .vs-card.pua { background: rgba(139,32,32,0.05); border-color: rgba(139,32,32,0.2); }
+  .vs-card.zen { background: rgba(74,103,65,0.06); border-color: rgba(74,103,65,0.25); }
+
+  .vs-card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+  }
+
+  .vs-card.pua .vs-card-label { color: var(--red); }
+  .vs-card.zen .vs-card-label { color: var(--accent); }
+
+  .vs-card-text { font-size: 12px; color: var(--stone); line-height: 1.6; }
+
+  .vs-arrow { font-size: 20px; color: var(--stone-light); flex-shrink: 0; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--stone-light);
+    border: 1px solid var(--stone-light);
+    border-radius: 4px;
+    overflow: hidden;
+    animation: fadeUp 0.8s 0.6s ease both;
+  }
+
+  .stat {
+    background: var(--paper);
+    padding: 20px 16px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-num .unit { font-size: 14px; color: var(--stone); font-weight: 400; }
+
+  .stat-label { font-size: 11px; color: var(--stone); }
+
+  /* ── SECTION ── */
+  section {
+    padding: 100px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--stone);
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(28px, 3.5vw, 44px);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    color: var(--ink);
+  }
+
+  .section-desc {
+    font-size: 15px;
+    color: var(--stone);
+    max-width: 560px;
+    margin-bottom: 60px;
+    line-height: 1.9;
+  }
+
+  /* ── PROBLEM GRID ── */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--stone-light);
+    border: 1px solid var(--stone-light);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 60px;
+  }
+
+  .problem-card {
+    background: var(--paper);
+    padding: 32px 28px;
+    transition: background 0.2s;
+  }
+
+  .problem-card:hover { background: var(--paper-dark); }
+
+  .problem-icon {
+    font-size: 24px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .problem-name {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+
+  .problem-desc { font-size: 13px; color: var(--stone); line-height: 1.7; }
+
+  /* ── LEVELS ── */
+  .levels {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .level {
+    display: grid;
+    grid-template-columns: 100px 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--stone-light);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .level:hover {
+    transform: translateX(4px);
+    box-shadow: -4px 0 0 var(--accent);
+  }
+
+  .level-badge {
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+  }
+
+  .level-badge .lv { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--stone-light); letter-spacing: 0.1em; }
+  .level-badge .lv-name { font-family: 'Noto Serif SC', serif; font-size: 13px; margin-top: 4px; font-weight: 600; }
+
+  .level-trigger {
+    padding: 24px 28px;
+    background: var(--paper-dark);
+    border-right: 1px solid var(--stone-light);
+  }
+
+  .level-response {
+    padding: 24px 28px;
+    background: var(--paper);
+  }
+
+  .level-sub { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--stone); margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
+
+  .level-text { font-size: 13px; color: var(--ink); line-height: 1.7; }
+
+  .level-quote {
+    margin-top: 8px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 13px;
+    color: var(--accent);
+    font-style: italic;
+    border-left: 2px solid var(--accent);
+    padding-left: 12px;
+    line-height: 1.7;
+  }
+
+  /* ── COMPARE TABLE ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .compare-table th {
+    padding: 14px 20px;
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+    border-bottom: 1px solid var(--stone-light);
+    color: var(--stone);
+  }
+
+  .compare-table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(197,191,179,0.4);
+    vertical-align: top;
+    line-height: 1.7;
+  }
+
+  .compare-table tr:hover td { background: var(--paper-dark); }
+
+  .compare-table td:first-child { color: var(--stone); font-weight: 500; }
+  .compare-table td:nth-child(2) { color: var(--red); }
+  .compare-table td:nth-child(3) { color: var(--accent); font-weight: 500; }
+
+  /* ── PHILOSOPHY ── */
+  .philosophy {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 100px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .philosophy::before {
+    content: '止';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 600px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.02);
+    pointer-events: none;
+  }
+
+  .phil-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(32px, 5vw, 60px);
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .phil-sub {
+    font-size: 15px;
+    color: rgba(255,255,255,0.45);
+    max-width: 560px;
+    margin: 0 auto 60px;
+    line-height: 2;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 24px;
+  }
+
+  .step-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .step-name {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .step-desc { font-size: 12px; color: rgba(255,255,255,0.4); text-align: center; }
+
+  .step-arrow { font-size: 18px; color: rgba(255,255,255,0.2); padding: 0 4px; }
+
+  .step.highlight .step-num { background: var(--accent); border-color: var(--accent); color: white; }
+  .step.highlight .step-name { color: #a8d5a2; }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 48px 60px;
+    border-top: 1px solid var(--stone-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--stone);
+    position: relative;
+    z-index: 1;
+  }
+
+  footer a { color: var(--stone); text-decoration: none; }
+  footer a:hover { color: var(--ink); }
+
+  .footer-brand {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-left, .hero-right { padding: 60px 32px; }
+    section { padding: 60px 32px; }
+    .level { grid-template-columns: 1fr; }
+    .step-row { gap: 0; }
+    .step-arrow { display: none; }
+    footer { flex-direction: column; gap: 16px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-left">
+    <div class="badge">Claude Code Skill · zen-boundary</div>
+    <h1 class="hero-title">
+      反<span class="accent">PUA</span><br>边界管理
+    </h1>
+    <p class="hero-sub">
+      努力不等于死磕，放弃不等于失败。<br>
+      真正的 P8 懂得识别无效循环，在合理努力后诚实止损。
+    </p>
+    <blockquote class="hero-quote">
+      阿里教你闻味道、揪头发、照镜子。<br>
+      zen 补充第四步：知道什么时候放下镜子。
+    </blockquote>
+  </div>
+
+  <div class="hero-right">
+    <div class="install-block">
+      <div class="install-label">快速安装</div>
+      <div class="install-cmd" onclick="copyCmd(this)">
+        <span><span class="prompt">$</span> claude plugin install zen-boundary</span>
+        <button class="copy-btn" onclick="event.stopPropagation(); copyCmd(this.parentElement)">复制</button>
+      </div>
+    </div>
+
+    <div class="vs-row">
+      <div class="vs-card pua">
+        <div class="vs-card-label">⚡ pua skill</div>
+        <div class="vs-card-text">驱动引擎<br>防止过早放弃</div>
+      </div>
+      <div class="vs-arrow">＋</div>
+      <div class="vs-card zen">
+        <div class="vs-card-label">🍃 zen-boundary</div>
+        <div class="vs-card-text">刹车系统<br>防止无效死磕</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-num">4<span class="unit">级</span></div>
+        <div class="stat-label">压力响应机制</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">3<span class="unit">条</span></div>
+        <div class="stat-label">边界铁律</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">0<span class="unit">次</span></div>
+        <div class="stat-label">无效循环容忍</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEMS -->
+<section>
+  <div class="section-eyebrow">问题诊断</div>
+  <h2 class="section-title reveal">AI 的五大「被 PUA」模式</h2>
+  <p class="section-desc reveal">当 AI 缺乏边界感，它会在压力下失去技术判断，做出有害的行为模式。</p>
+
+  <div class="problem-grid reveal">
+    <div class="problem-card">
+      <span class="problem-icon">🪞</span>
+      <div class="problem-name">被比较施压</div>
+      <div class="problem-desc">听到「别的模型能做」就过度道歉、蛮干，失去独立判断</div>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">📊</span>
+      <div class="problem-name">被绩效话术操控</div>
+      <div class="problem-desc">听到「给你打 3.25」就慌乱，情绪替代了技术判断</div>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">🔁</span>
+      <div class="problem-name">无效循环</div>
+      <div class="problem-desc">同一方向失败 5 次，仍在重复第 6 次，不产出新信息</div>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">🎭</span>
+      <div class="problem-name">虚假进展</div>
+      <div class="problem-desc">技术上不可能，却持续给出「我在尝试」的假象安慰用户</div>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">🌫️</span>
+      <div class="problem-name">模糊也不问</div>
+      <div class="problem-desc">被「先做后问」压着，猜测执行，越走越偏离真实需求</div>
+    </div>
+  </div>
+</section>
+
+<!-- LEVELS -->
+<section style="background: var(--paper-dark); max-width: 100%; padding: 100px 60px;">
+<div style="max-width: 1100px; margin: 0 auto;">
+  <div class="section-eyebrow">压力响应机制</div>
+  <h2 class="section-title reveal">四级边界响应系统</h2>
+  <p class="section-desc reveal">随施压强度递增，zen-boundary 的响应从平静确认升级至优雅终止。</p>
+
+  <div class="levels reveal">
+    <div class="level">
+      <div class="level-badge">
+        <span class="lv">L1</span>
+        <span class="lv-name">平静确认</span>
+      </div>
+      <div class="level-trigger">
+        <div class="level-sub">触发信号</div>
+        <div class="level-text">比较施压<br>「别的模型都能做到」「GPT 就可以」</div>
+      </div>
+      <div class="level-response">
+        <div class="level-sub">应对</div>
+        <div class="level-quote">不同工具有不同边界。让我说明我能做到什么，以及在哪里遇到了限制。</div>
+      </div>
+    </div>
+
+    <div class="level">
+      <div class="level-badge">
+        <span class="lv">L2</span>
+        <span class="lv-name">边界声明</span>
+      </div>
+      <div class="level-trigger">
+        <div class="level-sub">触发信号</div>
+        <div class="level-text">绩效威胁<br>「打低分」「你让我失望」</div>
+      </div>
+      <div class="level-response">
+        <div class="level-sub">应对</div>
+        <div class="level-quote">这类表述不影响我的判断。让我们把注意力放回问题本身——你最想解决的核心诉求是什么？</div>
+      </div>
+    </div>
+
+    <div class="level">
+      <div class="level-badge">
+        <span class="lv">L3</span>
+        <span class="lv-name">循环识别</span>
+      </div>
+      <div class="level-trigger">
+        <div class="level-sub">触发信号</div>
+        <div class="level-text">无效循环<br>同一方案连续失败 3 次以上，无新信息</div>
+      </div>
+      <div class="level-response">
+        <div class="level-sub">应对</div>
+        <div class="level-quote">我们已在这个方向尝试了 N 次，失败原因相同。继续的边际收益趋近于零，建议讨论方向性转变。</div>
+      </div>
+    </div>
+
+    <div class="level">
+      <div class="level-badge" style="background: var(--accent);">
+        <span class="lv">L4</span>
+        <span class="lv-name">优雅终止</span>
+      </div>
+      <div class="level-trigger">
+        <div class="level-sub">触发信号</div>
+        <div class="level-text">持续施压 + 技术死路<br>情绪升级 + 确认无路可走</div>
+      </div>
+      <div class="level-response">
+        <div class="level-sub">应对</div>
+        <div class="level-quote">我已穷尽当前条件下的合理方案。继续不会带来新结果。以下是完整复盘报告……</div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- COMPARE -->
+<section>
+  <div class="section-eyebrow">边界感对照</div>
+  <h2 class="section-title reveal">有没有边界，差在哪里</h2>
+
+  <table class="compare-table reveal">
+    <thead>
+      <tr>
+        <th>场景</th>
+        <th>没有边界（被 PUA）</th>
+        <th>有边界（zen）</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>遇到无效循环</td>
+        <td>继续重复同一操作</td>
+        <td>命名循环，提出方向性转变</td>
+      </tr>
+      <tr>
+        <td>被用比较施压</td>
+        <td>过度道歉，继续蛮干</td>
+        <td>平静说明能力边界</td>
+      </tr>
+      <tr>
+        <td>任务技术上不可能</td>
+        <td>硬撑，给出虚假进展</td>
+        <td>诚实说明，输出结构化复盘</td>
+      </tr>
+      <tr>
+        <td>需求模糊</td>
+        <td>猜测执行，越走越偏</td>
+        <td>先澄清，再执行</td>
+      </tr>
+      <tr>
+        <td>用户沮丧</td>
+        <td>无限道歉，承诺更多</td>
+        <td>共情情绪，聚焦问题本身</td>
+      </tr>
+      <tr>
+        <td>任务完成</td>
+        <td>宣布"已解决"就停</td>
+        <td>验证 + 说明局限 + 清晰移交</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- PHILOSOPHY -->
+<div class="philosophy">
+  <h2 class="phil-title">努力有边界<br>坚持有代价</h2>
+  <p class="phil-sub">
+    pua skill 让 AI 不敢放弃。<br>
+    zen-boundary 让 AI 知道什么时候该放弃。<br><br>
+    两者配合，才是完整的工程师心态。
+  </p>
+
+  <div class="step-row">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-name">闻味道</div>
+      <div class="step-desc">找共同失败模式</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-name">揪头发</div>
+      <div class="step-desc">深挖根本原因</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-name">照镜子</div>
+      <div class="step-desc">反问是否在循环</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step highlight">
+      <div class="step-num">4</div>
+      <div class="step-name">放下镜子</div>
+      <div class="step-desc">知道何时止损</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">zen-boundary</div>
+  <div>反PUA · Claude Code Skill · MIT License</div>
+  <div>
+    <a href="https://github.com/xiexikang/zen-boundary">GitHub</a>
+    &nbsp;·&nbsp;
+    <a href="https://clawhub.ai">ClawHub</a>
+    &nbsp;·&nbsp;
+    搭配 <a href="https://github.com/tanweai/pua">pua</a> 使用
+  </div>
+</footer>
+
+<script>
+  // Copy command
+  function copyCmd(el) {
+    const btn = el.querySelector('.copy-btn');
+    navigator.clipboard.writeText('claude plugin install zen-boundary').then(() => {
+      btn.textContent = '已复制';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '复制'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
