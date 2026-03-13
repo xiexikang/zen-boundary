@@ -1,19 +1,20 @@
 {
-  "name": "zen-boundary",
-  "version": "1.0.0",
-  "description": "Anti-PUA Boundary Manager -- helps Claude Code identify when to stop, resist pressure tactics, and output structured wrap-up reports instead of fake progress",
-  "author": {
-    "name": "xiexikang",
-    "url": "https://github.com/xiexikang"
-  },
-  "license": "MIT",
-  "skills": [
-    "skills/zen-boundary"
-  ],
-  "commands": [
-    "commands/zen.md"
-  ],
-  "keywords": ["boundary", "anti-pua", "productivity", "debugging", "zen"],
-  "homepage": "https://github.com/xiexikang/zen-boundary",
-  "repository": "https://github.com/xiexikang/zen-boundary"
+    "name": "zen-boundary",
+    "version": "1.0.0",
+    "description": "Anti-PUA Boundary Manager -- helps Claude Code identify when to stop, resist pressure tactics (comparisons, performance threats, emotional escalation), and output structured wrap-up reports instead of fake progress",
+    "author": {
+        "name": "xiexikang",
+        "url": "https://github.com/xiexikang"
+    },
+    "homepage": "https://github.com/xiexikang/zen-boundary",
+    "repository": "https://github.com/xiexikang/zen-boundary",
+    "license": "MIT",
+    "keywords": [
+        "anti-pua",
+        "boundary",
+        "zen",
+        "stop-loop",
+        "debugging",
+        "productivity"
+    ]
 }
