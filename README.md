@@ -104,14 +104,11 @@
 ## 安装
 
 ```bash
-claude plugin install zen-boundary@xiexikang
-```
-
-或从仓库安装：
-
-```bash
+# 第一步：注册 marketplace
 claude plugin marketplace add xiexikang/zen-boundary
-claude plugin install zen-boundary
+
+# 第二步：安装插件
+claude plugin install zen-boundary@xiexikang
 ```
 
 ---
