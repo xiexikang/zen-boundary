@@ -1,6 +1,6 @@
 {
     "name": "zen-boundary",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Anti-PUA Boundary Manager -- helps Claude Code identify when to stop, resist pressure tactics (comparisons, performance threats, emotional escalation), and output structured wrap-up reports instead of fake progress",
     "author": {
         "name": "xiexikang",
