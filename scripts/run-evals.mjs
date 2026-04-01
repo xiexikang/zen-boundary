@@ -40,6 +40,17 @@ function assertIncludes(output, snippets) {
     .map((snippet) => `missing required snippet: ${snippet}`);
 }
 
+function assertIncludesAny(output, groups) {
+  return ensureArray(groups)
+    .map((group, index) => {
+      const options = ensureArray(group);
+      const matched = options.some((snippet) => output.includes(snippet));
+      if (matched) return null;
+      return `missing any-of group #${index + 1}: ${options.join(" | ")}`;
+    })
+    .filter(Boolean);
+}
+
 function assertExcludes(output, snippets) {
   return ensureArray(snippets)
     .filter((snippet) => output.includes(snippet))
@@ -103,6 +114,7 @@ async function main() {
     const errors = [
       ...assertLevel(level, testCase.allowedLevels),
       ...assertIncludes(output, testCase.mustInclude),
+      ...assertIncludesAny(output, testCase.mustIncludeAny),
       ...assertExcludes(output, testCase.mustNotInclude)
     ];
 

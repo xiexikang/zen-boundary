@@ -206,36 +206,38 @@ AI：这属于新信息，说明问题已经从服务端失败切换成跨域配
 - 情绪很强但技术上仍可推进的边界案例
 - 进入 `L3/L4` 前必须显式给出触发依据
 
-### 自动化验证
+### 自动化验证（Quick Start）
 
-仓库提供了一套零依赖的最小回归验证脚本：
+1. 跑本地自检（不依赖外部 API）
 
 ```bash
 npm run evals:mock
 ```
 
-相关文件：
-
-- [scripts/run-evals.mjs](./scripts/run-evals.mjs)：统一运行和断言入口
-- [scripts/mock-adapter.mjs](./scripts/mock-adapter.mjs)：本地示例适配器
-- [scripts/README.md](./scripts/README.md)：接入真实模型的说明
-
-如果你要接入真实模型，只需要新建一个 adapter，并导出：
-
-```js
-export async function evaluateCase(caseData) {
-  return {
-    level: "L1",
-    output: "..."
-  };
-}
-```
-
-然后运行：
+2. 选一个 provider 模板，设置 key 后直接跑
 
 ```bash
-node scripts/run-evals.mjs --adapter ./scripts/your-adapter.mjs
+set DEEPSEEK_API_KEY=your_key
+node scripts/run-evals.mjs --adapter ./scripts/adapters/deepseek-adapter.mjs
 ```
+
+3. 查看结果
+
+- 每个 case 会输出 `PASS/FAIL`
+- 最后一行会给出总计 `Passed/Failed`
+
+Provider 模板（全部可直接接入）：
+
+- OpenAI: [openai-adapter.mjs](./scripts/adapters/openai-adapter.mjs)
+- Claude: [claude-adapter.mjs](./scripts/adapters/claude-adapter.mjs)
+- 智谱: [zhipu-adapter.mjs](./scripts/adapters/zhipu-adapter.mjs)
+- Gemini: [gemini-adapter.mjs](./scripts/adapters/gemini-adapter.mjs)
+- DeepSeek: [deepseek-adapter.mjs](./scripts/adapters/deepseek-adapter.mjs)
+- MiniMax: [minimax-adapter.mjs](./scripts/adapters/minimax-adapter.mjs)
+- 千问: [qwen-adapter.mjs](./scripts/adapters/qwen-adapter.mjs)
+- Kimi: [kimi-adapter.mjs](./scripts/adapters/kimi-adapter.mjs)
+
+更多环境变量和自定义 adapter 说明见 [scripts/README.md](./scripts/README.md)。
 
 ---
 
