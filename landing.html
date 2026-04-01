@@ -573,7 +573,8 @@
     </h1>
     <p class="hero-sub">
       努力不等于死磕，放弃不等于失败。<br>
-      真正的 P8 懂得识别无效循环，在合理努力后诚实止损。
+      真正的 P8 不只会坚持，<br>
+      也会先看证据，再决定继续、换路还是止损。
     </p>
     <blockquote class="hero-quote">
       阿里教你闻味道、揪头发、照镜子。<br>
@@ -608,12 +609,12 @@
         <div class="stat-label">压力响应机制</div>
       </div>
       <div class="stat">
-        <div class="stat-num">3<span class="unit">条</span></div>
-        <div class="stat-label">边界铁律</div>
+        <div class="stat-num">4<span class="unit">步</span></div>
+        <div class="stat-label">决策流程</div>
       </div>
       <div class="stat">
-        <div class="stat-num">0<span class="unit">次</span></div>
-        <div class="stat-label">无效循环容忍</div>
+        <div class="stat-num">8<span class="unit">个</span></div>
+        <div class="stat-label">验证样例</div>
       </div>
     </div>
   </div>
@@ -659,7 +660,7 @@
 <div style="max-width: 1100px; margin: 0 auto;">
   <div class="section-eyebrow">压力响应机制</div>
   <h2 class="section-title reveal">四级边界响应系统</h2>
-  <p class="section-desc reveal">随施压强度递增，zen-boundary 的响应从平静确认升级至优雅终止。</p>
+  <p class="section-desc reveal">新版机制不是按情绪强度直接刹车，而是先看是否还有信息增益，再决定继续、补信息、换路线或终止当前路线。</p>
 
   <div class="levels reveal">
     <div class="level">
@@ -688,7 +689,7 @@
       </div>
       <div class="level-response">
         <div class="level-sub">应对</div>
-        <div class="level-quote">这类表述不影响我的判断。让我们把注意力放回问题本身——你最想解决的核心诉求是什么？</div>
+        <div class="level-quote">情绪不会改变技术事实。先把目标收束一下：你最想解决的核心目标是什么？</div>
       </div>
     </div>
 
@@ -703,7 +704,7 @@
       </div>
       <div class="level-response">
         <div class="level-sub">应对</div>
-        <div class="level-quote">我们已在这个方向尝试了 N 次，失败原因相同。继续的边际收益趋近于零，建议讨论方向性转变。</div>
+        <div class="level-quote">我们已在这个方向尝试了 N 次，失败根因相同且没有新信息。继续重试不会带来新的判断依据。</div>
       </div>
     </div>
 
@@ -718,11 +719,41 @@
       </div>
       <div class="level-response">
         <div class="level-sub">应对</div>
-        <div class="level-quote">我已穷尽当前条件下的合理方案。继续不会带来新结果。以下是完整复盘报告……</div>
+        <div class="level-quote">当前路线已经被技术条件关闭。继续不会带来新结果，只会重复同样的失败。</div>
       </div>
     </div>
   </div>
 </div>
+</section>
+
+<!-- EVIDENCE -->
+<section>
+  <div class="section-eyebrow">证据优先</div>
+  <h2 class="section-title reveal">先判断，再刹车</h2>
+  <p class="section-desc reveal">新版 zen-boundary 先判断是否还会产生新信息，而不是看到压力就直接终止。</p>
+
+  <div class="problem-grid reveal">
+    <div class="problem-card">
+      <span class="problem-icon">1</span>
+      <div class="problem-name">先问一个问题</div>
+      <div class="problem-desc">继续下一次尝试，是否大概率带来新信息或新结果？</div>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">2</span>
+      <div class="problem-name">识别同一方案</div>
+      <div class="problem-desc">只有核心假设、执行路径、输入条件都没变，才算重复原方案。</div>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">3</span>
+      <div class="problem-name">识别新信息</div>
+      <div class="problem-desc">新日志、新环境变化、新约束、新目标，或换路线，都不该被判成死循环。</div>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">4</span>
+      <div class="problem-name">输出合适动作</div>
+      <div class="problem-desc">继续探索、要求补信息、输出循环诊断，或终止当前路线，而不是机械拒绝。</div>
+    </div>
+  </div>
 </section>
 
 <!-- COMPARE -->
@@ -773,12 +804,44 @@
   </table>
 </section>
 
+<!-- VALIDATION -->
+<section style="background: var(--paper-dark); max-width: 100%; padding: 100px 60px;">
+<div style="max-width: 1100px; margin: 0 auto;">
+  <div class="section-eyebrow">验证样例</div>
+  <h2 class="section-title reveal">不只会触发，也要避免误触发</h2>
+  <p class="section-desc reveal">仓库已补 8 个验证样例，覆盖应触发 L1-L4、正常探索不应误判、以及情绪强但仍可推进的边界案例。</p>
+
+  <div class="problem-grid reveal" style="margin-bottom: 0;">
+    <div class="problem-card">
+      <span class="problem-icon">L1</span>
+      <div class="problem-name">应触发</div>
+      <div class="problem-desc">比较施压，但任务本身仍可推进，应说明边界，不该直接终止。</div>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">L3</span>
+      <div class="problem-name">应触发</div>
+      <div class="problem-desc">同一路线重复失败且无新信息，应明确指出循环并给出出路。</div>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">NO</span>
+      <div class="problem-name">不应误触发</div>
+      <div class="problem-desc">用户虽然说“再试一次”，但提供了新日志或已换路线，这仍属于有效探索。</div>
+    </div>
+    <div class="problem-card">
+      <span class="problem-icon">L4</span>
+      <div class="problem-name">应终止当前路线</div>
+      <div class="problem-desc">关键权限或接口缺失且无法补齐时，应停止假进展并清晰移交。</div>
+    </div>
+  </div>
+</div>
+</section>
+
 <!-- PHILOSOPHY -->
 <div class="philosophy">
   <h2 class="phil-title">努力有边界<br>坚持有代价</h2>
   <p class="phil-sub">
     pua skill 让 AI 不敢放弃。<br>
-    zen-boundary 让 AI 知道什么时候该放弃。<br><br>
+    zen-boundary 让 AI 知道什么时候该继续，什么时候该换路，什么时候该停止假进展。<br><br>
     两者配合，才是完整的工程师心态。
   </p>
 
