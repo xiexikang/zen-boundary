@@ -1,0 +1,10 @@
+{
+  "name": "zen-boundary",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "evals": "node scripts/run-evals.mjs",
+    "evals:mock": "node scripts/run-evals.mjs --adapter ./scripts/mock-adapter.mjs"
+  }
+}

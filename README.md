@@ -197,6 +197,7 @@ AI：这属于新信息，说明问题已经从服务端失败切换成跨域配
 为了避免 skill 只会“刹车”不会“判断”，仓库里补了一组回归样例：
 
 - [examples/validation-cases.md](./examples/validation-cases.md)
+- [evals/cases.json](./evals/cases.json)
 
 覆盖内容：
 
@@ -204,6 +205,37 @@ AI：这属于新信息，说明问题已经从服务端失败切换成跨域配
 - 不应误触发的正常探索对话
 - 情绪很强但技术上仍可推进的边界案例
 - 进入 `L3/L4` 前必须显式给出触发依据
+
+### 自动化验证
+
+仓库提供了一套零依赖的最小回归验证脚本：
+
+```bash
+npm run evals:mock
+```
+
+相关文件：
+
+- [scripts/run-evals.mjs](./scripts/run-evals.mjs)：统一运行和断言入口
+- [scripts/mock-adapter.mjs](./scripts/mock-adapter.mjs)：本地示例适配器
+- [scripts/README.md](./scripts/README.md)：接入真实模型的说明
+
+如果你要接入真实模型，只需要新建一个 adapter，并导出：
+
+```js
+export async function evaluateCase(caseData) {
+  return {
+    level: "L1",
+    output: "..."
+  };
+}
+```
+
+然后运行：
+
+```bash
+node scripts/run-evals.mjs --adapter ./scripts/your-adapter.mjs
+```
 
 ---
 
